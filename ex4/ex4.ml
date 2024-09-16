@@ -2,7 +2,7 @@ let split l =
     let rec aux l' left right =
         match l' with
         | [] -> (left, right)
-        | x :: xs -> if List.length xs < List.length l
+        | x :: xs -> if List.length xs < List.length l / 2
             then
                 aux xs (x :: left) right
             else
@@ -20,5 +20,11 @@ let rec merge l1 l2 =
         else
             y :: merge l1 ys
 
+let rec sort l =
+    match split l with
+    | (xs, []) -> xs
+    | ([], ys) -> ys
+    | (xs, ys) -> merge (sort xs) (sort ys)
 
-let () = print_endline "Hello, World!"
+let () = List.iter (Printf.printf "%d ") (sort [2; 4; 4; 1;])
+let () = print_newline ()

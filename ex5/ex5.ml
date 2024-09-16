@@ -1,18 +1,44 @@
 (* fancy η reduction *)
 (* (a) *)
-let square_sum = List.map (fun i -> i * i)
+let square_sum = List.fold_left (fun acc i -> acc + (i * i)) 0
 
 (* (b) *)
-let find_opt x = List.find_opt (fun v -> v == x)
+let find_opt v l =
+  let rec aux l' i =
+    match l' with
+    | [] -> None
+    | x :: xs ->
+        if v = x
+          then Some v
+          else aux xs (i + 1)
+  in
+    aux l 0
+
+let find_opt' x l =
+  let (r, _) = List.fold_left (
+    fun (o, i) v ->
+      if o == None && x == v
+        then (Some i, i + 1)
+        else (o, i + 1)
+    ) (None, 0) l
+  in
+    r
 
 let () =
     let list = [38; 27; 43; 3; 9; 82; 10] in
-    List.iter (Printf.printf "%d ") (square_sum list);
+    Printf.printf "%d" (square_sum list);
       print_newline ()
 
 let () =
     let list = [38; 27; 43; 3; 9; 82; 10] in
-    match (find_opt 3 list) with
+    match (find_opt 43 list) with
+    | Some v -> print_int v;
+      print_newline ()
+    | None -> print_endline "Not found"
+
+let () =
+    let list = [38; 27; 43; 3; 9; 82; 10] in
+    match (find_opt' 43 list) with
     | Some v -> print_int v;
       print_newline ()
     | None -> print_endline "Not found"
