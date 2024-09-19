@@ -15,11 +15,13 @@
 
 (documentation https://url/to/documentation)
 
+
 (package
  (name compiler)
  (synopsis "A short synopsis")
  (description "A longer description")
  (depends ocaml dune utop)
+ (allow_empty)
  (tags
   (topics "to describe" your project)))
 
