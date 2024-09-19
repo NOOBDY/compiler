@@ -1,4 +1,4 @@
-let l = List.init 1_000_000 (fun x -> x + 1)
+let l = List.init 1_000_000 ((+)1)
 
 let rev l =
     let rec aux l1 l2 =
@@ -15,5 +15,5 @@ let rec map f l =
 
 let () = List.iter (Printf.printf "%d ") (rev l)
 let () = print_newline ()
-let () = List.iter (Printf.printf "%d ") (map (fun x -> x + 2) l)
+let () = List.iter (Printf.printf "%d ") (map ((+)2) l)
 let () = print_newline ()

@@ -15,14 +15,12 @@ let find_opt v l =
     aux l 0
 
 let find_opt' x l =
-  let (r, _) = List.fold_left (
-    fun (o, i) v ->
-      if o == None && x == v
-        then (Some i, i + 1)
-        else (o, i + 1)
-    ) (None, 0) l
+  let aux (res, i) v =
+      match res with
+      | None when x == v -> (Some i, i + 1)
+      | _ -> (res, i + 1)
   in
-    r
+    fst (List.fold_left aux (None, 0) l)
 
 let () =
     let list = [38; 27; 43; 3; 9; 82; 10] in

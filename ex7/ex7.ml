@@ -47,7 +47,7 @@ let rec fold_right (f : 'a -> 'acc -> 'acc) (l : 'a seq) (acc : 'acc) : 'acc =
     | Seq (x, y) -> fold_right f x (fold_right f y acc)
 
 (* (b) *)
-let seq2list (l : 'a seq) : 'a list = fold_right (fun v acc -> v :: acc) l []
+let seq2list (l : 'a seq) : 'a list = fold_right List.cons l []
 
 (* TODO: tail recursive seq2list *)
 
@@ -58,8 +58,8 @@ let enumerate (f : 'acc -> (int * 'a) -> 'acc) (acc : 'acc) (l : 'a seq) : 'acc 
 let find_opt (x : 'a) (l : 'a seq) : 'a option =
     let aux res (i, v) =
         match res with
-        | None -> if x = v then Some i else res
-        | res' -> res'
+        | None when x = v -> Some i
+        | _ -> res
     in
         enumerate aux None l
 
@@ -67,8 +67,8 @@ let find_opt (x : 'a) (l : 'a seq) : 'a option =
 let nth (s : 'a seq) (n : int) : 'a =
     let aux res (i, v) =
         match res with
-        | None -> if i = n then Some v else res
-        | res' -> res'
+        | None when i = n -> Some v
+        | _ -> res
     in
         match enumerate aux None s with
         | None -> failwith "index out of bounds"
@@ -83,7 +83,7 @@ let () = print_int (hd s1)
 let () = print_newline ()
 let () = print_list (tl s2)
 let () = print_newline ()
-let () = print_list (map (fun v -> v + 1) s2)
+let () = print_list (map ((+)1) s2)
 let () = print_newline ()
 let () = print_list (rev s2)
 let () = print_newline ()
