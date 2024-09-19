@@ -1,6 +1,7 @@
 type 'a seq =
   | Elt of 'a
   | Seq of 'a seq * 'a seq
+[@@deriving show]
 
 let ( @@ ) x y = Seq (x, y)
 
@@ -85,16 +86,16 @@ let nth (s : 'a seq) (n : int) : 'a =
   | Some v -> v
 ;;
 
-let print_list (l : 'a seq) = List.iter (Printf.printf "%d ") (seq2list l)
+let print_seq_int l = print_string ([%show: int seq] l)
 let s1 = Seq (Elt 1, Seq (Elt 2, Elt 3))
 let s2 = Seq (Seq (Elt 1, Seq (Elt 2, Elt 4)), Elt 3)
 let () = print_int (hd s1)
 let () = print_newline ()
-let () = print_list (tl s2)
+let () = print_seq_int (tl s2)
 let () = print_newline ()
-let () = print_list (map (( + ) 1) s2)
+let () = print_seq_int (map (( + ) 1) s2)
 let () = print_newline ()
-let () = print_list (rev s2)
+let () = print_seq_int (rev s2)
 let () = print_newline ()
 let () = print_string (if mem 2 s2 then "true" else "false")
 let () = print_newline ()

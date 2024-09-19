@@ -20,7 +20,7 @@
  (name compiler)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune utop)
+ (depends ocaml dune utop ppx_deriving)
  (allow_empty)
  (tags
   (topics "to describe" your project)))
