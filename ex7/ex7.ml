@@ -52,28 +52,25 @@ let seq2list (l : 'a seq) : 'a list = fold_right (fun v acc -> v :: acc) l []
 (* TODO: tail recursive seq2list *)
 
 (* (c) *)
+let enumerate (f : 'acc -> (int * 'a) -> 'acc) (acc : 'acc) (l : 'a seq) : 'acc =
+    fst (fold_left (fun (res, i) v -> (f res (i, v), i + 1)) (acc, 0)  l)
+
 let find_opt (x : 'a) (l : 'a seq) : 'a option =
-    let aux (res, i) v =
+    let aux res (i, v) =
         match res with
-        | None ->
-                if x = v
-                    then (Some i, i + 1)
-                    else (res, i + 1)
-        | res' -> (res', i + 1)
+        | None -> if x = v then Some i else res
+        | res' -> res'
     in
-        fst (fold_left aux (None, 0) l)
+        enumerate aux None l
 
 (* (d) *)
 let nth (s : 'a seq) (n : int) : 'a =
-    let aux (res, i) v =
+    let aux res (i, v) =
         match res with
-        | None ->
-                if i = n
-                    then (Some v, i + 1)
-                    else (res, i + 1)
-        | res' -> (res', i + 1)
+        | None -> if i = n then Some v else res
+        | res' -> res'
     in
-        match fst (fold_left aux (None, 0) s) with
+        match enumerate aux None s with
         | None -> failwith "index out of bounds"
         | Some v -> v
 
