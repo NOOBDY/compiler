@@ -1,3 +1,0 @@
-(executable
- (preprocess (pps ppx_deriving.show))
- (name ex7))
