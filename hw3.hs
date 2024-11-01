@@ -43,7 +43,7 @@ null Epsilon = True
 null (Star _) = True
 null (Character _) = False
 null (Union e1 e2) = null e1 || null e2
-null (Concat e1 e2) = null e1 || null e2
+null (Concat e1 e2) = null e1 && null e2
 
 first :: RegExp -> State
 first Epsilon = Set.empty
@@ -88,9 +88,9 @@ eof = ('#', -1)
 nextState :: RegExp -> State -> Char -> State
 nextState e q c =
     Set.foldl
-        ( \acc c' ->
-            if fst c' == c
-                then Set.union (follow c' e) acc
+        ( \acc ic@(c', _) ->
+            if c' == c
+                then Set.union (follow ic e) acc
                 else acc
         )
         Set.empty
@@ -100,7 +100,7 @@ makeDFA :: RegExp -> Autom
 makeDFA e =
     let
         e' = Concat e (Character eof)
-        q0 = first e
+        q0 = first e'
         transition q ref = do
             t <- readSTRef ref
             unless
@@ -112,9 +112,8 @@ makeDFA e =
           where
             delta =
                 Set.foldl
-                    ( \acc' ic ->
-                        let c = fst ic
-                            q' = nextState e' q c
+                    ( \acc' (c, _) ->
+                        let q' = nextState e' q c
                          in Map.insert c q' acc'
                     )
                     Map.empty
@@ -126,6 +125,23 @@ makeDFA e =
             readSTRef ref
      in
         Autom{start = q0, trans = trans}
+
+recognize :: Autom -> String -> Bool
+recognize a s =
+    let
+        q0 = start a
+     in
+        isFinal $ foldl aux (Just q0) s
+  where
+    isFinal :: Maybe State -> Bool
+    isFinal (Just q) = Set.member eof q
+    isFinal Nothing = False
+
+    aux :: Maybe State -> Char -> Maybe State
+    aux (Just q) c = do
+        q's <- Map.lookup q (trans a)
+        Map.lookup c q's
+    aux Nothing _ = Nothing
 
 fprintState :: State -> String
 fprintState q = Set.foldl print' "" q
@@ -164,7 +180,7 @@ main = do
     let !_ = assert (null (Star a)) ()
     let !_ = assert (null (Concat Epsilon (Star Epsilon))) ()
     let !_ = assert (null (Union Epsilon a)) ()
-    let !_ = assert (null (Concat a (Star a))) ()
+    let !_ = assert ((not . null) (Concat a (Star a))) ()
 
     -- ex2
     let ca = ('a', 0)
@@ -206,7 +222,8 @@ main = do
     let !_ = assert (Set.size (follow ca r3) == 2) ()
 
     -- ex4
-    let e =
+    -- (a|b)*a(a|b)
+    let e1 =
             Concat
                 (Star (Union (Character ('a', 1)) (Character ('b', 1))))
                 ( Concat
@@ -214,8 +231,51 @@ main = do
                     (Union (Character ('a', 3)) (Character ('b', 2)))
                 )
 
-    let a = makeDFA e
-    putStrLn $ fprintAutom a
+    let a1 = makeDFA e1
+    putStrLn $ fprintAutom a1
     -- writeFile "autom.dot" $ fprintAutom a
 
+    -- ex5
+    let !_ = assert (recognize a1 "aa") ()
+    let !_ = assert (recognize a1 "ab") ()
+    let !_ = assert (recognize a1 "abababaab") ()
+    let !_ = assert (recognize a1 "babababab") ()
+    let !_ = assert (recognize a1 $ replicate 1000 'b' <> "ab") ()
+    let !_ = assert (not $ recognize a1 "") ()
+    let !_ = assert (not $ recognize a1 "a") ()
+    let !_ = assert (not $ recognize a1 "b") ()
+    let !_ = assert (not $ recognize a1 "ba") ()
+    let !_ = assert (not $ recognize a1 "aba") ()
+    let !_ = assert (not $ recognize a1 "abababaaba") ()
+
+    -- (a*|ba*b)*
+    let e2 =
+            Star
+                ( Union
+                    (Star (Character ('a', 1)))
+                    ( Concat
+                        (Character ('b', 1))
+                        ( Concat
+                            (Star (Character ('a', 2)))
+                            (Character ('b', 2))
+                        )
+                    )
+                )
+
+    let a2 = makeDFA e2
+    putStrLn $ fprintAutom a2
+    -- writeFile "autom2.dot" $ fprintAutom a2
+
+    let !_ = assert (recognize a2 "") ()
+    let !_ = assert (recognize a2 "bb") ()
+    let !_ = assert (recognize a2 "aaa") ()
+    let !_ = assert (recognize a2 "aaabbaaababaaa") ()
+    let !_ = assert (recognize a2 "bbbbbbbbbbbbbb") ()
+    let !_ = assert (recognize a2 "bbbbabbbbabbbabbb") ()
+    let !_ = assert (not $ recognize a2 "b") ()
+    let !_ = assert (not $ recognize a2 "ba") ()
+    let !_ = assert (not $ recognize a2 "ab") ()
+    let !_ = assert (not $ recognize a2 "aaabbaaaaabaaa") ()
+    let !_ = assert (not $ recognize a2 "bbbbbbbbbbbbb") ()
+    let !_ = assert (not $ recognize a2 "bbbbabbbbabbbabbbb") ()
     return ()
